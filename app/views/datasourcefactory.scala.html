@@ -1,0 +1,32 @@
+@(title: String)(factory: factories.DataSourceFactory, id: Int)
+@import factories.ParamType
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>@title</title>
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+        <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>
+    </head>
+    <body>
+        <ul>
+        @for(param <- factory.parameters().getParams) {
+            <li>@param.getName, @param.getDescription, @param.getType</li>
+        }
+        </ul>
+
+        @helper.form(action = routes.Application.buildDataSource(id), 'enctype -> "multipart/form-data") {
+            @for(pnum <- Array.range(0, factory.parameters().size())) {
+                <p>
+                    @factory.parameters().getParam(pnum).getName (@factory.parameters().getParam(pnum).getDescription)
+                    <input type="text" name="@pnum">
+                </p>
+            }
+            <p>
+                <input type="submit">
+            </p>
+        }
+    </body>
+</html>
