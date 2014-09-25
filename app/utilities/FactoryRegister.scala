@@ -1,10 +1,12 @@
 package utilities
 
 import datasources.nofilter.NoFilterFactory
+import factories.{TopicModelFactory, DataSourceFactory, FactoryBase}
+import topicmodels.empty.EmptyTopicModelFactory
 
 
 object FactoryRegister {
-  val dataSourceFactories = List(NoFilterFactory, NoFilterFactory, NoFilterFactory)
-  val topicModelFactories = List()
-  val collabFilterModelFactories = List()
+  val dataSourceFactories = List[DataSourceFactory](NoFilterFactory, NoFilterFactory, NoFilterFactory)
+  val topicModelFactories = List[TopicModelFactory](EmptyTopicModelFactory)
+  val collabFilterModelFactories = List[FactoryBase]()
 }

@@ -11,7 +11,7 @@ class Param (name: String, description: String, kind: ParamType.ParamType) {
   def setValue (value :String) {
     if (kind == ParamType.Boolean) {
       setBoolValue(value != "0")
-    } else if (kind == ParamType.Int) {
+    } else if (kind == ParamType.Int || kind == ParamType.DataSource) {
       setIntValue(Integer.valueOf(value))
     } else if (kind == ParamType.Float) {
       setDoubleValue(java.lang.Double.valueOf(value))

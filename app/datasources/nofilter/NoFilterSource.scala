@@ -1,29 +1,11 @@
 package datasources.nofilter
 
-import java.sql.Statement
-import java.util
-
-import datasources.ResultSetDataModelBuilder
-import play.api.Play.current
-import factories.DataSource
-import org.apache.mahout.cf.taste.model.DataModel
-import org.apache.mahout.math.{SparseMatrix, Matrix}
-import play.api.db.DB
+import datasources.SQLFactory
 
 import scala.collection.immutable.WrappedString
-import scala.collection.mutable
-import scala.collection.immutable
+import scala.collection.mutable.ArrayBuffer
 
-private class NoFilterSource extends DataSource {
-  private var jobsAreItems: Boolean = false
-  private var wordType: Int = 0
-  private var wordsList: Array[String] = null
-  private var numWords: Int = 0
-  private var numItems: Int = 0
-  private var numUsers: Int = 0
-  private var corpus: Array[immutable.HashMap[Int, Int]] = null
-  private var dataModel: DataModel = null
-  override val uuid: Long = NoFilterSource.uuid
+private class NoFilterSource (jobsAreItems: Boolean, wordType: Int) extends SQLFactory {
   // wordTable => The table which associates terms and items
   // wordTableItemCol => The real name for the column which refers to items
   // wordTableTermType => The part of the table name for the term type
@@ -88,7 +70,8 @@ private class NoFilterSource extends DataSource {
     val ratingsUserCol = ratingsTableUserCol
     fmt.format(ratingsUserCol)
   }
-  private def ratingsQuery = {
+
+  override protected def ratingsQuery = {
     val fmt = new WrappedString(
       "select userNum, itemNum, avg(rate_list) rating from\n" +
       "  (select userindex.ident userNum, itemindex.ident itemNum, rate_list\n" +
@@ -103,7 +86,8 @@ private class NoFilterSource extends DataSource {
     val ratingsUserCol = ratingsTableUserCol
     fmt.format(ratingsUserCol, ratingsItemCol)
   }
-  private def wordsQuery  = {
+
+  override protected def wordsQuery  = {
     val fmt = new WrappedString(
       "select itemNum, wordNum, count(wordNum) cnt from\n" +
       "(select itemindex.ident itemNum, wordindex.ident wordNum\n" +
@@ -120,95 +104,17 @@ private class NoFilterSource extends DataSource {
     fmt.format(wordTable, wordTable, wordsItemCol, wordTable)
   }
 
-  private def initTables(stmt: Statement): Unit = {
-    stmt.execute(wordIndexInsertQuery)
-    stmt.execute(itemIndexInsertQuery)
-    stmt.execute(userIndexInsertQuery)
+  override protected def initQueries: Array[String] = {
+    val queries = ArrayBuffer[String]()
+
+    queries += wordIndexInsertQuery
+    queries += itemIndexInsertQuery
+    queries += userIndexInsertQuery
+
+    queries.toArray
   }
 
-  private def getNumBase(stmt: Statement, tableName: String): Int = {
-    val fmt = new WrappedString("SELECT COUNT(ident) FROM %s")
-    val query = fmt.format(tableName)
-    val rs = stmt.executeQuery(query)
-    rs.next()
-    rs.getInt(1)
-  }
-
-  private def getListBase(stmt: Statement, tableName: String, colName: String, length: Int): Array[String] = {
-    val listingQuery = new WrappedString("SELECT %s FROM %s ORDER BY ident")
-    val query = listingQuery.format(colName, tableName)
-    val rs = stmt.executeQuery(query)
-    val array = new Array[String](length)
-    var curNum = 0
-    while (rs.next()) {
-      array(curNum) = rs.getString(1)
-      curNum += 1
-    }
-    array
-  }
-
-  private def getNumWords(stmt: Statement): Int = getNumBase(stmt, "wordindex")
-  private def getNumUsers(stmt: Statement): Int = getNumBase(stmt, "userindex")
-  private def getNumItems(stmt: Statement): Int = getNumBase(stmt, "itemindex")
-
-  private def getWordsList(stmt: Statement): Array[String] =
-    getListBase(stmt, "wordindex", "term", numWords)
-
-  private def getUsersList(stmt: Statement): Array[String] =
-    getListBase(stmt, "userindex", "user_id", numUsers)
-
-  private def getItemsList(stmt: Statement): Array[String] =
-    getListBase(stmt, "itemindex", "item_id", numItems)
-
-  private def retrieveCorpus(stmt: Statement): Array[immutable.HashMap[Int, Int]] = {
-    val corpus = Array.range(0, numItems).map(x => immutable.HashMap.newBuilder[Int, Int])
-
-    val rs = stmt.executeQuery(wordsQuery)
-
-    while (rs.next()) {
-      val item = rs.getInt(1)
-      val wordNum = rs.getInt(2)
-      val count = rs.getInt(3)
-      corpus(item).+=((wordNum, count))
-    }
-    corpus.map(_.result())
-  }
-
-  private def retrieveDataModel(stmt: Statement): DataModel = {
-    val rs = stmt.executeQuery(ratingsQuery)
-    ResultSetDataModelBuilder.makeDataModel(rs, numUsers)
-  }
-
-  def this (jobsAreItems: Boolean, wordType: Int) = {
-    this()
-    this.jobsAreItems = jobsAreItems
-    this.wordType = wordType
-
-    val conn = DB.getConnection("jobs")
-    try {
-      val stmt = conn.createStatement()
-      stmt.setFetchSize(10000)
-      initTables(stmt)
-      numWords = getNumWords(stmt)
-      numUsers = getNumUsers(stmt)
-      numItems = getNumItems(stmt)
-      wordsList = getWordsList(stmt)
-      corpus = retrieveCorpus(stmt)
-      dataModel = retrieveDataModel(stmt)
-    } finally {
-      conn.close()
-    }
-  }
-
-  override def getDataModel: DataModel = dataModel
-
-  override def getNumUsers: Int = numUsers
-
-  override def getNumItems: Int = numItems
-
-  override def getNumWords: Int = numWords
-
-  override def description: String = {
+  override protected def description: String = {
     val items = if (jobsAreItems) {
       "Jobs"
     } else {
@@ -220,11 +126,7 @@ private class NoFilterSource extends DataSource {
     fmt.format(items, wordTypeStr)
   }
 
-  override def getWord(wordIndex: Int): String = wordsList(wordIndex)
+  override protected val factoryId: Long = 234563238
 
-  override def getCorpus: Array[immutable.HashMap[Int, Int]] = corpus
-}
-
-object NoFilterSource {
-  val uuid: Long = 123433234
+  override protected def cleanupQueries: Array[String] = new Array(0)
 }

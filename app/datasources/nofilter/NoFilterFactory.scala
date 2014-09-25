@@ -15,11 +15,8 @@ object NoFilterFactory extends DataSourceFactory {
   override def buildDataSource(fp: FactoryParameters, cdp: CollabDashParameters): DataSource = {
     val jobsAreItems = fp.getParam(0).getBoolValue
     val wordType = fp.getParam(1).getIntValue
-    new NoFilterSource(jobsAreItems, wordType)
+    new NoFilterSource(jobsAreItems, wordType).getDataSource
   }
-
-  override val uuid: Long = NoFilterSource.uuid
-
 
   private val params = Array(
     new Param(

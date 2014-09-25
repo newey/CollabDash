@@ -1,5 +1,4 @@
-@(title: String)(factory: factories.DataSourceFactory, id: Int)
-@import factories.ParamType
+@(title: String)(factory: factories.FactoryBase, id: Int, submission: Int => Call)
 
 <!DOCTYPE html>
 
@@ -17,7 +16,7 @@
         }
         </ul>
 
-        @helper.form(action = routes.Application.buildDataSource(id), 'enctype -> "multipart/form-data") {
+        @helper.form(action = submission(id), 'enctype -> "multipart/form-data") {
             @for(pnum <- Array.range(0, factory.parameters().size())) {
                 <p>
                     @factory.parameters().getParam(pnum).getName (@factory.parameters().getParam(pnum).getDescription)
