@@ -33,6 +33,11 @@ object Application extends Controller {
       (FactoryRegister.topicModelFactories(index), index, routes.Application.buildTopicModel(_)))
   }
 
+  def createCollabFilterModelFromFactory(index: Int) = Action { request =>
+    Ok(views.html.factory("collab filter model factories")
+      (FactoryRegister.collabFilterModelFactories(index), index, routes.Application.buildCollabFilterModel(_)))
+  }
+
   def buildDataSource(index: Int) = Action (parse.multipartFormData) { request =>
     val factory = FactoryRegister.dataSourceFactories(index)
     val parameters = factory.parameters()
@@ -41,7 +46,10 @@ object Application extends Controller {
     val paramNames = parameters.getParams.map(_.getName)
     var whatHappened = paramNames.zip(paramValues)
       .map(x => x._1 + " : " + x._2 + "\n")
-      .reduce(_+_)
+      .reduceOption(_+_) match {
+      case st: Some[String] => st.get
+      case _ => ""
+    }
 
     parameters.getParams.zip(paramValues)
       .map(x => x._1.setValue(x._2))
@@ -70,7 +78,10 @@ object Application extends Controller {
     val paramNames = parameters.getParams.map(_.getName)
     var whatHappened = paramNames.zip(paramValues)
       .map(x => x._1 + " : " + x._2 + "\n")
-      .reduce(_+_)
+      .reduceOption(_+_) match {
+      case st: Some[String] => st.get
+      case _ => ""
+    }
 
     parameters.getParams.zip(paramValues)
       .map(x => x._1.setValue(x._2))
@@ -84,13 +95,42 @@ object Application extends Controller {
     Ok(whatHappened)
   }
 
-
-
   def fetchTopicModel(index: Int) = Action {
     val topicModel = CollabDB.getTopicModel(index)
     val dataSource = topicModel.dataStore
 
     Ok(topicModel.getDescription + "\n" + topicModel.numTopics + "\nData source: "+dataSource.getDescription)
+  }
+
+  def buildCollabFilterModel(index: Int) = Action (parse.multipartFormData) { request =>
+    val factory = FactoryRegister.collabFilterModelFactories(index)
+    val parameters = factory.parameters()
+    val paramIndexes = Array.range(0, parameters.size()).map(_.toString)
+    val paramValues = paramIndexes.map(request.body.dataParts.get(_).head.head)
+    val paramNames = parameters.getParams.map(_.getName)
+    var whatHappened = paramNames.zip(paramValues)
+      .map(x => x._1 + " : " + x._2 + "\n")
+      .reduceOption(_+_) match {
+      case st: Some[String] => st.get
+      case _ => ""
+    }
+
+    parameters.getParams.zip(paramValues)
+      .map(x => x._1.setValue(x._2))
+
+    val collabFilter = factory.buildCollabFilterModel(parameters, new CollabDashParameters)
+
+    whatHappened += "\n" + collabFilter.getDescription + "\n"
+
+    CollabDB.addInstance(collabFilter)
+
+    Ok(whatHappened)
+  }
+
+
+  def fetchCollabFilterModel(index: Int) = Action {
+    val cfModel = CollabDB.getCollabFilterModel(index)
+    Ok(cfModel.getDescription + "\n")
   }
 
 

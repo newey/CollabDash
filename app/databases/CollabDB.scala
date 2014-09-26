@@ -3,7 +3,7 @@ package databases
 import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, ByteArrayOutputStream}
 
 import databases.InstanceType.InstanceType
-import factories.{TopicModel, DataSource}
+import factories.{CollabFilterModel, TopicModel, DataSource}
 import play.api.Play.current
 import play.api.db._
 
@@ -39,7 +39,7 @@ object CollabDB {
     }
   }
 
-  private def addInstance(description: String, obj: Serializable, factoryId: Long, instanceType: InstanceType): Unit = {
+  private def addInstance(description: String, obj: AnyRef, factoryId: Long, instanceType: InstanceType): Unit = {
     val conn = DB.getConnection()
     try {
       val stmt = conn.prepareStatement(
@@ -62,6 +62,21 @@ object CollabDB {
       stmt.setString(4, instanceType.toString)
 
       stmt.execute()
+
+      val getidstmt = conn.prepareStatement(
+        "SELECT instanceid FROM instances WHERE description=? AND factoryid=? AND instancetype=CAST(? AS instancetype)"
+      )
+      getidstmt.setString(1, description)
+      getidstmt.setLong(2, factoryId)
+      getidstmt.setString(3, instanceType.toString)
+
+      val rs = getidstmt.executeQuery()
+      rs.next()
+
+      val instanceId = rs.getInt(1)
+
+      lazyInstanceStore(instanceId) = obj
+
     } finally {
       conn.close()
     }
@@ -73,6 +88,10 @@ object CollabDB {
 
   def addInstance(topicm: TopicModel): Unit = {
     addInstance(topicm.getDescription, topicm, topicm.getFactoryId, InstanceType.topicModel)
+  }
+
+  def addInstance(collab: CollabFilterModel): Unit = {
+    addInstance(collab.getDescription, collab, collab.getFactoryId, InstanceType.cfModel)
   }
 
   private def getInstance[B](instanceIndex: Int): B = {
@@ -98,12 +117,10 @@ object CollabDB {
       }
     }
 
-    val second = first match {
+    first match {
       case g2: B => g2
       case _ => throw new ClassCastException
     }
-
-    second
   }
 
   def getDataSource(instanceIndex: Int): DataSource = {
@@ -112,6 +129,10 @@ object CollabDB {
 
   def getTopicModel(instanceIndex: Int): TopicModel = {
     getInstance[TopicModel](instanceIndex)
+  }
+
+  def getCollabFilterModel(instanceIndex: Int): CollabFilterModel = {
+    getInstance[CollabFilterModel](instanceIndex)
   }
 
   private def getInfo(instanceType: InstanceType): List[InstanceInfo] = {
