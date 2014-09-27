@@ -1,6 +1,7 @@
 package topicmodels.empty
 
 import factories._
+import factories.util.{ParamType, Param, FactoryParameters, CollabDashParameters}
 
 /**
  * Created by robert on 25/09/2014.

@@ -1,8 +1,13 @@
 package databases
 
 import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, ByteArrayOutputStream}
+import java.sql.Statement
+import java.sql.Connection
 
 import databases.InstanceType.InstanceType
+import evaluation.util.ScoreType
+import evaluation.util.ScoreType.ScoreType
+import evaluation.util.{ScoreType, ResultGroup}
 import factories.{CollabFilterModel, TopicModel, DataSource}
 import play.api.Play.current
 import play.api.db._
@@ -12,32 +17,6 @@ import scala.collection.mutable
 
 object CollabDB {
   val lazyInstanceStore = mutable.Map[Int, AnyRef]()
-  def getJarDescriptions = {
-    var outstring = ""
-    val conn = DB.getConnection()
-    try {
-      val stmt = conn.createStatement
-      val rs = stmt.executeQuery("SELECT * FROM jars")
-      while (rs.next()) {
-        outstring += rs.getString("description") + "\n"
-      }
-    } finally {
-      conn.close()
-    }
-    outstring
-  }
-
-  def addJarDescription (path :String, description :String): Unit = {
-    val conn = DB.getConnection()
-    try {
-      val insertStatement = conn.prepareStatement("INSERT INTO jars (jarpath, description) VALUES (?, ?)")
-      insertStatement.setString(1, path)
-      insertStatement.setString(2, description)
-      insertStatement.execute()
-    } finally {
-      conn.close()
-    }
-  }
 
   private def addInstance(description: String, obj: AnyRef, factoryId: Long, instanceType: InstanceType): Unit = {
     val conn = DB.getConnection()
@@ -81,15 +60,12 @@ object CollabDB {
       conn.close()
     }
   }
-
   def addInstance(dataSource: DataSource): Unit = {
     addInstance(dataSource.getDescription, dataSource, dataSource.getFactoryId, InstanceType.dataSource)
   }
-
   def addInstance(topicm: TopicModel): Unit = {
     addInstance(topicm.getDescription, topicm, topicm.getFactoryId, InstanceType.topicModel)
   }
-
   def addInstance(collab: CollabFilterModel): Unit = {
     addInstance(collab.getDescription, collab, collab.getFactoryId, InstanceType.cfModel)
   }
@@ -122,15 +98,12 @@ object CollabDB {
       case _ => throw new ClassCastException
     }
   }
-
   def getDataSource(instanceIndex: Int): DataSource = {
     getInstance[DataSource](instanceIndex)
   }
-
   def getTopicModel(instanceIndex: Int): TopicModel = {
     getInstance[TopicModel](instanceIndex)
   }
-
   def getCollabFilterModel(instanceIndex: Int): CollabFilterModel = {
     getInstance[CollabFilterModel](instanceIndex)
   }
@@ -154,10 +127,83 @@ object CollabDB {
       conn.close()
     }
   }
-
   def getDataSourceInfo: List[InstanceInfo] = getInfo(InstanceType.dataSource)
   def getTopicModelInfo: List[InstanceInfo] = getInfo(InstanceType.topicModel)
   def getCfModelInfo: List[InstanceInfo] = getInfo(InstanceType.cfModel)
+
+  def addResultGroup(rg: ResultGroup): Unit = {
+    val conn = DB.getConnection()
+    try {
+      val insertEvalQuery = "INSERT INTO evaluations (modelid, description, testsetsize, trainsetsize, lost) " +
+        "VALUES (?, ?, ?, ?, ?)"
+      val insertEvalStmt = conn.prepareStatement(insertEvalQuery, Statement.RETURN_GENERATED_KEYS)
+      val numtypes = rg.scoreTypes.size
+      insertEvalStmt.setInt(1, rg.modelId)
+      insertEvalStmt.setString(2, rg.description)
+      insertEvalStmt.setInt(3, rg.testSize)
+      insertEvalStmt.setInt(4, rg.trainSize)
+      insertEvalStmt.setInt(5, rg.lost)
+
+      val numRowsUpdated = insertEvalStmt.executeUpdate()
+      printf("[CollabDB] evaluations: Inserted %d rows\n", numRowsUpdated)
+
+      val genKeys = insertEvalStmt.getGeneratedKeys()
+      genKeys.next()
+
+      val evalId = genKeys.getInt(1)
+
+
+      val insertResultsQuery = "INSERT INTO results (score, scoretype, evalid) VALUES (?, CAST(? AS scoretype), ?)"
+      val insertResultsStmt = conn.prepareStatement(insertResultsQuery)
+      insertResultsStmt.setInt(3, evalId)
+
+      (rg.scores, rg.scoreTypes).zipped.foreach((s, sct) => {
+        insertResultsStmt.setString(2, sct.toString)
+        s.foreach(r => {insertResultsStmt.setDouble(1, r); insertResultsStmt.execute()})
+      })
+    } finally {
+      conn.close()
+    }
+  }
+  def getResultGroups(): List[ResultGroup] = {
+    val conn = DB.getConnection()
+    try {
+      val rgs = ListBuffer[ResultGroup]()
+      val rs = conn.prepareStatement("SELECT evalid, modelid, description, testsetsize, trainsetsize, lost FROM evaluations").executeQuery()
+      while (rs.next()) {
+        val (types, scores) = getEvalResults(rs.getInt(1), conn)
+        val modelId = rs.getInt(2)
+        val desc = rs.getString(3)
+        val testsize = rs.getInt(4)
+        val trainsize = rs.getInt(5)
+        val lost = rs.getInt(6)
+        rgs += ResultGroup(modelId, types, scores, desc, testsize, trainsize, lost)
+      }
+
+      rgs.toList
+    } finally {
+      conn.close()
+    }
+  }
+  private def getEvalResults(evalId: Int, conn: Connection): (List[ScoreType], List[List[Double]]) = {
+    val firstresults = ListBuffer[(ScoreType, Double)]()
+    val stmt = conn.prepareStatement("SELECT scoretype, score FROM results WHERE evalid=?")
+    stmt.setInt(1, evalId)
+    val rs = stmt.executeQuery()
+    while (rs.next()){
+      firstresults += ((ScoreType.withName(rs.getString(1)), rs.getDouble(2)))
+    }
+    val secondresults = firstresults.toList.groupBy(_._1)
+    val scoretypes = ListBuffer[ScoreType]()
+    val scores = ListBuffer[List[Double]]()
+
+    secondresults.keys.foreach(x => {
+      scoretypes += x
+      scores += secondresults(x).map(_._2)
+    })
+
+    (scoretypes.toList, scores.toList)
+  }
 
   def purge(): Unit = {
     val conn = DB.getConnection()

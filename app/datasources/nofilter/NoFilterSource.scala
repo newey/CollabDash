@@ -73,7 +73,7 @@ private class NoFilterSource (jobsAreItems: Boolean, wordType: Int) extends SQLF
 
   override protected def ratingsQuery = {
     val fmt = new WrappedString(
-      "select userNum, itemNum, avg(rate_list) rating from\n" +
+      "select userNum, itemNum, avg(rate_list)-2 rating from\n" +
       "  (select userindex.ident userNum, itemindex.ident itemNum, rate_list\n" +
       "    from job_recom.user_study_u2j_rating_final\n" +
       "    inner join userindex\n" +

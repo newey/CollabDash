@@ -1,4 +1,4 @@
-package factories
+package factories.util
 
 /**
  * Created by robert on 25/09/2014.

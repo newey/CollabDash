@@ -8,13 +8,13 @@ GET         /                             controllers.Application.index
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                 controllers.Assets.at(path="/public", file)
 
-GET         /testMakeNoFilter             controllers.Application.testMakeNoFilter
-
 GET         /dataSourceFactory/:id        controllers.Application.createDataSourceFromFactory(id: Int)
 
 GET         /topicModelFactory/:id        controllers.Application.createTopicModelFromFactory(id: Int)
 
 GET         /collabFilterModelFactory/:id   controllers.Application.createCollabFilterModelFromFactory(id: Int)
+
+GET         /evaluationFactory/:id      controllers.Application.createEvaluationFromFactory(id: Int)
 
 GET         /fetchDataSource/:id          controllers.Application.fetchDataSource(id: Int)
 
@@ -27,5 +27,7 @@ POST        /dataSourceFactory/:id        controllers.Application.buildDataSourc
 POST        /topicModelFactory/:id        controllers.Application.buildTopicModel(id: Int)
 
 POST        /collabFilterModelFactory/:id        controllers.Application.buildCollabFilterModel(id: Int)
+
+POST        /evaluationFactory/:id        controllers.Application.buildEvaluation(id: Int)
 
 POST        /purge                        controllers.Application.purge()

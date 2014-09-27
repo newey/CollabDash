@@ -20,6 +20,9 @@
         @for((cfmf, index) <- factories.collabFilterModelFactories.zipWithIndex) {
             <li><a href="collabFilterModelFactory/@index">@cfmf.name()</a>, @cfmf.description()</li>
         }
+        @for((ef, index) <- factories.evaluationFactories.zipWithIndex) {
+            <li><a href="evaluationFactory/@index">@ef.name()</a>, @ef.description()</li>
+        }
         </ul>
     </body>
 </html>

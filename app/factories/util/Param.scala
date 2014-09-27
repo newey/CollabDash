@@ -1,4 +1,4 @@
-package factories
+package factories.util
 
 /**
  * Created by robert on 23/09/2014.
@@ -11,7 +11,7 @@ class Param (name: String, description: String, kind: ParamType.ParamType) {
   def setValue (value :String) {
     if (kind == ParamType.Boolean) {
       setBoolValue(value != "0")
-    } else if (kind == ParamType.Int || kind == ParamType.DataSource) {
+    } else if (kind == ParamType.Int || kind == ParamType.DataSource || kind == ParamType.CFModel) {
       setIntValue(Integer.valueOf(value))
     } else if (kind == ParamType.Float) {
       setDoubleValue(java.lang.Double.valueOf(value))

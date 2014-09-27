@@ -1,14 +1,13 @@
 package controllers
 
-import datasources.nofilter.NoFilterFactory
-import factories.CollabDashParameters
+import factories.util.{FactoryParameters, FactoryBase, CollabDashParameters}
 import play.api.Play.current
 import play.api._
 import play.api.mvc._
 
 import databases._
 import utilities._
-import play.api.templates.Html
+import play.api.libs.Files
 
 object Application extends Controller {
 
@@ -38,25 +37,18 @@ object Application extends Controller {
       (FactoryRegister.collabFilterModelFactories(index), index, routes.Application.buildCollabFilterModel(_)))
   }
 
+  def createEvaluationFromFactory(index: Int) = Action { request =>
+    Ok(views.html.factory("collab filter model factories")
+      (FactoryRegister.evaluationFactories(index), index, routes.Application.buildEvaluation(_)))
+  }
+
   def buildDataSource(index: Int) = Action (parse.multipartFormData) { request =>
     val factory = FactoryRegister.dataSourceFactories(index)
-    val parameters = factory.parameters()
-    val paramIndexes = Array.range(0, parameters.size()).map(_.toString)
-    val paramValues = paramIndexes.map(request.body.dataParts.get(_).head.head)
-    val paramNames = parameters.getParams.map(_.getName)
-    var whatHappened = paramNames.zip(paramValues)
-      .map(x => x._1 + " : " + x._2 + "\n")
-      .reduceOption(_+_) match {
-      case st: Some[String] => st.get
-      case _ => ""
-    }
-
-    parameters.getParams.zip(paramValues)
-      .map(x => x._1.setValue(x._2))
+    val parameters = bindRequestToParams(factory, request)
 
     val datasource = factory.buildDataSource(parameters, new CollabDashParameters)
 
-    whatHappened += "\n" + datasource.getDescription + "\n"
+    val whatHappened = datasource.getDescription + "\n"
 
     CollabDB.addInstance(datasource)
 
@@ -72,23 +64,11 @@ object Application extends Controller {
 
   def buildTopicModel(index: Int) = Action (parse.multipartFormData) { request =>
     val factory = FactoryRegister.topicModelFactories(index)
-    val parameters = factory.parameters()
-    val paramIndexes = Array.range(0, parameters.size()).map(_.toString)
-    val paramValues = paramIndexes.map(request.body.dataParts.get(_).head.head)
-    val paramNames = parameters.getParams.map(_.getName)
-    var whatHappened = paramNames.zip(paramValues)
-      .map(x => x._1 + " : " + x._2 + "\n")
-      .reduceOption(_+_) match {
-      case st: Some[String] => st.get
-      case _ => ""
-    }
-
-    parameters.getParams.zip(paramValues)
-      .map(x => x._1.setValue(x._2))
+    val parameters = bindRequestToParams(factory, request)
 
     val topicModel = factory.buildTopicModel(parameters, new CollabDashParameters)
 
-    whatHappened += "\n" + topicModel.getDescription + "\n"
+    val whatHappened = topicModel.getDescription + "\n"
 
     CollabDB.addInstance(topicModel)
 
@@ -104,23 +84,10 @@ object Application extends Controller {
 
   def buildCollabFilterModel(index: Int) = Action (parse.multipartFormData) { request =>
     val factory = FactoryRegister.collabFilterModelFactories(index)
-    val parameters = factory.parameters()
-    val paramIndexes = Array.range(0, parameters.size()).map(_.toString)
-    val paramValues = paramIndexes.map(request.body.dataParts.get(_).head.head)
-    val paramNames = parameters.getParams.map(_.getName)
-    var whatHappened = paramNames.zip(paramValues)
-      .map(x => x._1 + " : " + x._2 + "\n")
-      .reduceOption(_+_) match {
-      case st: Some[String] => st.get
-      case _ => ""
-    }
-
-    parameters.getParams.zip(paramValues)
-      .map(x => x._1.setValue(x._2))
-
+    val parameters = bindRequestToParams(factory, request)
     val collabFilter = factory.buildCollabFilterModel(parameters, new CollabDashParameters)
 
-    whatHappened += "\n" + collabFilter.getDescription + "\n"
+    val whatHappened = collabFilter.getDescription + "\n"
 
     CollabDB.addInstance(collabFilter)
 
@@ -133,17 +100,29 @@ object Application extends Controller {
     Ok(cfModel.getDescription + "\n")
   }
 
+  def buildEvaluation(index: Int) = Action (parse.multipartFormData) { request =>
+    val factory = FactoryRegister.evaluationFactories(index)
+    val parameters = bindRequestToParams(factory, request)
+    val evaluations = factory.buildEvaluation(parameters, new CollabDashParameters)
+    CollabDB.addResultGroup(evaluations)
 
-  def testMakeNoFilter = Action {
-    var output = ""
-    val toUse = NoFilterFactory.parameters
-    toUse.getParam(0).setBoolValue(false)
-    toUse.getParam(1).setIntValue(1)
-    val dataSource = NoFilterFactory.buildDataSource(toUse, new CollabDashParameters)
-    output += dataSource.getDescription + "\n"
-    output += dataSource.getDataModel.getNumUsers.toString
+    val whatHappened = evaluations.description + " " + evaluations.modelId.toString + " " + evaluations.scoreTypes.toString + " " + evaluations.scores.toString() + "\n"
+    Ok(whatHappened)
+  }
 
-
-    Ok(output)
+  private def bindRequestToParams(factory: FactoryBase, request: Request[MultipartFormData[Files.TemporaryFile]]): FactoryParameters = {
+    val parameters = factory.parameters()
+    val paramIndexes = Array.range(0, parameters.size()).map(_.toString)
+    val paramValues = paramIndexes.map(request.body.dataParts.get(_).head.head)
+    val paramNames = parameters.getParams.map(_.getName)
+    var whatHappened = paramNames.zip(paramValues)
+      .map(x => x._1 + " : " + x._2 + "\n")
+      .reduceOption(_+_) match {
+      case st: Some[String] => st.get
+      case _ => ""
+    }
+    parameters.getParams.zip(paramValues)
+      .map(x => x._1.setValue(x._2))
+    parameters
   }
 }

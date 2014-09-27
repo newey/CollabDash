@@ -1,6 +1,7 @@
 package collabfiltermodels.itemaverage
 
 import factories._
+import factories.util.{ParamType, Param, FactoryParameters, CollabDashParameters}
 import org.apache.mahout.cf.taste.eval.RecommenderBuilder
 import org.apache.mahout.cf.taste.impl.recommender.ItemAverageRecommender
 import org.apache.mahout.cf.taste.model.DataModel
