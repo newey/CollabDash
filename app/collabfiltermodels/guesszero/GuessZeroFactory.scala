@@ -1,4 +1,4 @@
-package collabfiltermodels.itemaverage
+package collabfiltermodels.guesszero
 
 import java.util
 
@@ -7,7 +7,7 @@ import factories.util._
 import org.apache.mahout.cf.taste.common.Refreshable
 import org.apache.mahout.cf.taste.eval.RecommenderBuilder
 import org.apache.mahout.cf.taste.model.DataModel
-import org.apache.mahout.cf.taste.recommender.{RecommendedItem, IDRescorer, Recommender}
+import org.apache.mahout.cf.taste.recommender.{IDRescorer, RecommendedItem, Recommender}
 
 /**
  * Created by robert on 26/09/2014.

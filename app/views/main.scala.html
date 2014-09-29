@@ -1,28 +1,31 @@
 @(title: String)(factories: utilities.FactoryRegister.type)
 
-<!DOCTYPE html>
+@base(title){
 
-<html>
-    <head>
-        <title>@title</title>
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
-        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-        <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>
-    </head>
-    <body>
-        <ul>
-        @for((dsf, index) <- factories.dataSourceFactories.zipWithIndex) {
-            <li><a href="dataSourceFactory/@index">@dsf.name</a>, @dsf.description</li>
-        }
-        @for((tmf, index) <- factories.topicModelFactories.zipWithIndex) {
-            <li><a href="topicModelFactory/@index">@tmf.name</a>, @tmf.description</li>
-        }
-        @for((cfmf, index) <- factories.collabFilterModelFactories.zipWithIndex) {
-            <li><a href="collabFilterModelFactory/@index">@cfmf.name</a>, @cfmf.description</li>
-        }
-        @for((ef, index) <- factories.evaluationFactories.zipWithIndex) {
-            <li><a href="evaluationFactory/@index">@ef.name</a>, @ef.description</li>
-        }
-        </ul>
-    </body>
-</html>
+} {
+    <h1>Data Sources</h1>
+    <ul>
+    @for((dsf, index) <- factories.dataSourceFactories.zipWithIndex) {
+        <li><a href="dataSourceFactory/@index">@dsf.name</a>, @dsf.description</li>
+    }
+    </ul>
+    <h1>Topic Models</h1>
+    <ul>
+    @for((tmf, index) <- factories.topicModelFactories.zipWithIndex) {
+        <li><a href="topicModelFactory/@index">@tmf.name</a>, @tmf.description</li>
+    }
+    </ul>
+    <h1>CF Models</h1>
+    <ul>
+    @for((cfmf, index) <- factories.collabFilterModelFactories.zipWithIndex) {
+        <li><a href="collabFilterModelFactory/@index">@cfmf.name</a>, @cfmf.description</li>
+    }
+    </ul>
+
+    <h1>Evaluations</h1>
+    <ul>
+    @for((ef, index) <- factories.evaluationFactories.zipWithIndex) {
+        <li><a href="evaluationFactory/@index">@ef.name</a>, @ef.description</li>
+    }
+    </ul>
+}

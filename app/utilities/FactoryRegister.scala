@@ -1,6 +1,10 @@
 package utilities
 
-import collabfiltermodels.itemaverage.{GuessZeroFactory, ItemAverageFactory}
+import collabfiltermodels.ALSFactory.ALSFactory
+import collabfiltermodels.UserSimilarityFactory.UserSimilarityFactory
+import collabfiltermodels.guesszero.GuessZeroFactory
+import collabfiltermodels.itemaverage.ItemAverageFactory
+import collabfiltermodels.itemsim.ItemSimilarityFactory
 import datasources.nofilter.NoFilterFactory
 import evaluation.TrainTestEvaluator
 import factories.{EvaluationFactory, CollabFilterModelFactory, TopicModelFactory, DataSourceFactory}
@@ -10,6 +14,6 @@ import topicmodels.empty.EmptyTopicModelFactory
 object FactoryRegister {
   val dataSourceFactories = List[DataSourceFactory](NoFilterFactory)
   val topicModelFactories = List[TopicModelFactory](EmptyTopicModelFactory)
-  val collabFilterModelFactories = List[CollabFilterModelFactory](ItemAverageFactory, GuessZeroFactory)
+  val collabFilterModelFactories = List[CollabFilterModelFactory](ItemAverageFactory, GuessZeroFactory, ItemSimilarityFactory, UserSimilarityFactory, ALSFactory)
   val evaluationFactories = List[EvaluationFactory](TrainTestEvaluator)
 }

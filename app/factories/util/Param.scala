@@ -8,7 +8,15 @@ class Param (name: String, description: String, kind: ParamType.ParamType) {
   def getDescription = description
   def getType = kind
 
-  def copy: Param = new Param(name, description, kind)
+  def copy: Param = {
+    val p = new Param(name, description, kind)
+    p.stringVal = stringVal
+    p.doubleVal = doubleVal
+    p.intVal = intVal
+    p.boolVal = boolVal
+    p.intArrayVal = intArrayVal
+    p
+  }
 
   def setValue (value :String) {
     if (kind == ParamType.Boolean) {

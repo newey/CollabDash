@@ -21,8 +21,8 @@ object TrainTestEvaluator extends EvaluationFactory {
     val model = CollabDB.getCollabFilterModel(modelNums(0))
     val dataSource = model.dataStore
     val sets = new TrainTestSplitter(dataSource.getPreferences, testProp, dataSource.getNumUsers)
-    val descfmt = new WrappedString("test score on %f of data for data %s")
-    val description = descfmt.format(testProp, dataSource.getDescription)
+    val descfmt = new WrappedString("test score on %f")
+    val description = descfmt.format(testProp)
     val evals = modelNums.map(modelNum => {
       val ((scores, lost), tobuild) = Timing(getEvaluation(CollabDB.getCollabFilterModel(modelNum), sets))
       Evaluation(modelNum, scores, tobuild, lost)
@@ -43,14 +43,15 @@ object TrainTestEvaluator extends EvaluationFactory {
     val shrunkSize = data.size
 
     printf("Lost %d to NaN\n", sets.getTestData.size-shrunkSize)
-    val maeval = data.map(dat => Math.abs(dat._1-dat._2)).reduce(_+_)/shrunkSize
-    val rmsval = Math.sqrt(data.map(dat => Math.pow(dat._1-dat._2, 2)).reduce(_+_)/shrunkSize)
-    val meanGuess = data.map(_._1).reduce(_+_)/shrunkSize
-    val varGuess = data.map(x=>Math.pow(x._1-meanGuess,2)).reduce(_+_)/shrunkSize
+    def valUnlessEmpty(v: => Double) = if (shrunkSize == 0) {Double.NaN} else {v}
+    val maeval = valUnlessEmpty(data.map(dat => Math.abs(dat._1-dat._2)).reduce(_+_)/shrunkSize)
+    val rmsval = valUnlessEmpty(Math.sqrt(data.map(dat => Math.pow(dat._1-dat._2, 2)).reduce(_+_)/shrunkSize))
+    val meanGuess = valUnlessEmpty(data.map(_._1).reduce(_+_)/shrunkSize)
+    val varGuess = valUnlessEmpty(data.map(x=>Math.pow(x._1-meanGuess,2)).reduce(_+_)/shrunkSize)
 
     (List(
       Score(ScoreType.MAE, maeval),
-      Score(ScoreType.RMS, rmsval),
+      Score(ScoreType.RMSE, rmsval),
       Score(ScoreType.GuessMean, meanGuess),
       Score(ScoreType.GuessVariance, varGuess)
     ), sets.testSize-shrunkSize)

@@ -3,31 +3,35 @@
 # ~~~~
 
 # Home page
-GET         /                             controllers.Application.index
+GET         /                                    controllers.Application.index
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file                 controllers.Assets.at(path="/public", file)
+GET         /assets/*file                        controllers.Assets.at(path="/public", file)
 
-GET         /dataSourceFactory/:id        controllers.Application.createDataSourceFromFactory(id: Int)
+GET         /dataSourceFactory/:id               controllers.Application.createDataSourceFromFactory(id: Int)
 
-GET         /topicModelFactory/:id        controllers.Application.createTopicModelFromFactory(id: Int)
+GET         /topicModelFactory/:id               controllers.Application.createTopicModelFromFactory(id: Int)
 
-GET         /collabFilterModelFactory/:id   controllers.Application.createCollabFilterModelFromFactory(id: Int)
+GET         /collabFilterModelFactory/:id        controllers.Application.createCollabFilterModelFromFactory(id: Int)
 
-GET         /evaluationFactory/:id      controllers.Application.createEvaluationFromFactory(id: Int)
+GET         /evaluationFactory/:id               controllers.Application.createEvaluationFromFactory(id: Int)
 
-GET         /fetchDataSource/:id          controllers.Application.fetchDataSource(id: Int)
+GET         /fetchDataSource/:id                 controllers.Application.fetchDataSource(id: Int)
 
-GET         /fetchTopicModel/:id          controllers.Application.fetchTopicModel(id: Int)
+GET         /fetchTopicModel/:id                 controllers.Application.fetchTopicModel(id: Int)
 
 GET         /fetchCollabFilterModel/:id          controllers.Application.fetchCollabFilterModel(id: Int)
 
-POST        /dataSourceFactory/:id        controllers.Application.buildDataSource(id: Int)
+GET         /data/results.json                   controllers.Application.getResults
 
-POST        /topicModelFactory/:id        controllers.Application.buildTopicModel(id: Int)
+GET         /results                             controllers.Application.resultsList
+
+POST        /dataSourceFactory/:id               controllers.Application.buildDataSource(id: Int)
+
+POST        /topicModelFactory/:id               controllers.Application.buildTopicModel(id: Int)
 
 POST        /collabFilterModelFactory/:id        controllers.Application.buildCollabFilterModel(id: Int)
 
-POST        /evaluationFactory/:id        controllers.Application.buildEvaluation(id: Int)
+POST        /evaluationFactory/:id               controllers.Application.buildEvaluation(id: Int)
 
-POST        /purge                        controllers.Application.purge()
+POST        /purge                               controllers.Application.purge()

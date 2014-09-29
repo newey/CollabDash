@@ -1,9 +1,12 @@
 package databases
 
 import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, ByteArrayOutputStream}
-import java.sql.{Connection, Statement}
+import java.sql.{Timestamp, Connection, Statement}
 
 import databases.InstanceType.InstanceType
+import evaluation.util.ScoreType
+import evaluation.util.ScoreType.ScoreType
+import evaluation.util.ScoreType.ScoreType
 import factories.util.InstanceBase
 import factories._
 import play.api.Play.current
@@ -182,6 +185,44 @@ object CollabDB {
     }
   }
 
+  def getResultsForDisplay(): List[ResultsDisplay] = {
+    val query =
+      "SELECT results.score, results.scoretype, " +
+        "evaluations.buildtime, evaluations.lost, " +
+        "evaluationgroups.trainsetsize, evaluationgroups.testsetsize, " +
+        "datasourcesview.description dataDescription ," +
+        "cfmodelview.description modelDescription, " +
+        "evaluationview.description evaluationDescription, results.timestamp " +
+        "FROM results " +
+        "INNER JOIN evaluations ON evaluations.evalid=results.evalid " +
+        "INNER JOIN evaluationgroups ON evaluations.evalgroupid=evaluationgroups.evalgroupid " +
+        "INNER JOIN datasourcesview ON evaluationgroups.dataid=datasourcesview.instanceid " +
+        "INNER JOIN cfmodelview ON evaluations.modelid=cfmodelview.instanceid " +
+        "INNER JOIN evaluationview ON evaluations.evalgroupid=evaluationview.instanceid"
+    val results = ListBuffer[ResultsDisplay]()
+    val conn = DB.getConnection()
+    try {
+      val rs = conn.prepareStatement(query).executeQuery()
+      while (rs.next) {
+        results += ResultsDisplay(
+          rs.getDouble(1),
+          ScoreType.withName(rs.getString(2)),
+          rs.getLong(3),
+          rs.getInt(4),
+          rs.getInt(5),
+          rs.getInt(6),
+          rs.getString(7),
+          rs.getString(8),
+          rs.getString(9),
+          rs.getTimestamp(10).toInstant().getEpochSecond
+        )
+      }
+    } finally {
+      conn.close()
+    }
+    results.toList
+  }
+
   def purge(): Unit = {
     val conn = DB.getConnection()
     try {
@@ -195,3 +236,21 @@ object CollabDB {
 
 case class InstanceInfo (index: Int, description: String)
 
+case class ResultsDisplay (resultsScore: Double, scoreType: ScoreType, buildTime: Long,
+                            failSize: Int, trainSize: Int, testSize: Int, dataDesc: String,
+                            modelDesc: String, evalDesc: String, tstamp: Long) {
+  def toMap: Map[String, String] = {
+    Map(
+      "Score" -> resultsScore.toString,
+      "ScoreType" -> scoreType.toString,
+      "BuildTime" -> buildTime.toString,
+      "FailedAmount" -> failSize.toString,
+      "TrainSize" -> trainSize.toString,
+      "TestSize" -> testSize.toString,
+      "Data" -> dataDesc,
+      "Model" -> modelDesc,
+      "Evaluation" -> evalDesc,
+      "Timestamp" -> tstamp.toString
+    )
+  }
+}
