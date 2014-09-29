@@ -1,10 +1,8 @@
 package factories
 
-import factories.util.{FactoryParameters, FactoryBase, CollabDashParameters}
+import factories.util.FactoryBase
 
 /**
  * Created by robert on 25/09/2014.
  */
-trait TopicModelFactory extends FactoryBase {
-  def buildTopicModel(fp: FactoryParameters, cdp: CollabDashParameters): TopicModel
-}
+trait TopicModelFactory extends FactoryBase[TopicModel]

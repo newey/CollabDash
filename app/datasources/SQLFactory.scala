@@ -2,9 +2,11 @@ package datasources
 
 import java.sql.Statement
 
+import factories.util.InstanceBase
 import factories.{Term, Document, DataSource, Preference}
 import play.api.Play.current
 import play.api.db.DB
+import utilities.Timing
 
 import scala.collection.immutable.WrappedString
 import scala.collection.mutable.ArrayBuffer
@@ -28,21 +30,26 @@ abstract class SQLFactory {
   def getDataSource: DataSource = {
     val conn = DB.getConnection("jobs")
     try {
-      val stmt = conn.createStatement()
-      stmt.setFetchSize(10000)
-      multiQuery(stmt, initQueries)
-      numWords = getNumWords(stmt)
-      numUsers = getNumUsers(stmt)
-      numItems = getNumItems(stmt)
-      val words = getWordList(stmt)
-      val users = getUserList(stmt)
-      val items = getItemList(stmt)
-      val corpus = retrieveCorpus(stmt)
-      val preferences = retrievePreferences(stmt)
+      val (dataSource, micros) = Timing({
+        val stmt = conn.createStatement()
+        stmt.setFetchSize(10000)
+        multiQuery(stmt, initQueries)
+        numWords = getNumWords(stmt)
+        numUsers = getNumUsers(stmt)
+        numItems = getNumItems(stmt)
+        val words = getWordList(stmt)
+        val users = getUserList(stmt)
+        val items = getItemList(stmt)
+        val corpus = retrieveCorpus(stmt)
+        val preferences = retrievePreferences(stmt)
 
 
-      multiQuery(stmt, cleanupQueries)
-      new DataSource(description, factoryId, users, items, words, corpus, preferences)
+        multiQuery(stmt, cleanupQueries)
+        new DataSource(description, factoryId, users, items, words, corpus, preferences)
+
+      })
+      dataSource.setComputeTime(micros)
+      dataSource
     } finally {
       conn.close()
     }

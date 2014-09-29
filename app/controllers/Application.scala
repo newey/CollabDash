@@ -1,9 +1,11 @@
 package controllers
 
-import factories.util.{FactoryParameters, FactoryBase, CollabDashParameters}
+import factories.util.{InstanceBase, FactoryParameters, FactoryBase, CollabDashParameters}
 import play.api.Play.current
 import play.api._
 import play.api.mvc._
+import scala.concurrent.ExecutionContext
+import ExecutionContext.Implicits.global
 
 import databases._
 import utilities._
@@ -42,17 +44,16 @@ object Application extends Controller {
       (FactoryRegister.evaluationFactories(index), index, routes.Application.buildEvaluation(_)))
   }
 
+
   def buildDataSource(index: Int) = Action (parse.multipartFormData) { request =>
     val factory = FactoryRegister.dataSourceFactories(index)
     val parameters = bindRequestToParams(factory, request)
+    val datasource = factory.build(parameters, new CollabDashParameters)
+    datasource onSuccess {
+      case ds => CollabDB.addInstance(ds)
+    }
 
-    val datasource = factory.buildDataSource(parameters, new CollabDashParameters)
-
-    val whatHappened = datasource.getDescription + "\n"
-
-    CollabDB.addInstance(datasource)
-
-    Ok(whatHappened)
+    Redirect(routes.Application.index())
   }
 
   def fetchDataSource(index: Int) = Action {
@@ -65,14 +66,12 @@ object Application extends Controller {
   def buildTopicModel(index: Int) = Action (parse.multipartFormData) { request =>
     val factory = FactoryRegister.topicModelFactories(index)
     val parameters = bindRequestToParams(factory, request)
+    val topicModel = factory.build(parameters, new CollabDashParameters)
+    topicModel onSuccess {
+      case tm => CollabDB.addInstance(tm)
+    }
 
-    val topicModel = factory.buildTopicModel(parameters, new CollabDashParameters)
-
-    val whatHappened = topicModel.getDescription + "\n"
-
-    CollabDB.addInstance(topicModel)
-
-    Ok(whatHappened)
+    Redirect(routes.Application.index())
   }
 
   def fetchTopicModel(index: Int) = Action {
@@ -85,13 +84,13 @@ object Application extends Controller {
   def buildCollabFilterModel(index: Int) = Action (parse.multipartFormData) { request =>
     val factory = FactoryRegister.collabFilterModelFactories(index)
     val parameters = bindRequestToParams(factory, request)
-    val collabFilter = factory.buildCollabFilterModel(parameters, new CollabDashParameters)
+    val collabFilter = factory.build(parameters, new CollabDashParameters)
 
-    val whatHappened = collabFilter.getDescription + "\n"
+    collabFilter onSuccess {
+      case cf => CollabDB.addInstance(cf)
+    }
 
-    CollabDB.addInstance(collabFilter)
-
-    Ok(whatHappened)
+    Redirect(routes.Application.index())
   }
 
 
@@ -103,14 +102,18 @@ object Application extends Controller {
   def buildEvaluation(index: Int) = Action (parse.multipartFormData) { request =>
     val factory = FactoryRegister.evaluationFactories(index)
     val parameters = bindRequestToParams(factory, request)
-    val evaluations = factory.buildEvaluation(parameters, new CollabDashParameters)
-    CollabDB.addResultGroup(evaluations)
+    val evaluations = factory.build(parameters, new CollabDashParameters)
 
-    val whatHappened = evaluations.description + " " + evaluations.modelId.toString + " " + evaluations.scoreTypes.toString + " " + evaluations.scores.toString() + "\n"
-    Ok(whatHappened)
+    evaluations onSuccess {
+      case eval => CollabDB.addResultGroup(eval)
+    }
+    evaluations onFailure {
+      case eval => throw eval
+    }
+    Redirect(routes.Application.index())
   }
 
-  private def bindRequestToParams(factory: FactoryBase, request: Request[MultipartFormData[Files.TemporaryFile]]): FactoryParameters = {
+  private def bindRequestToParams(factory: FactoryBase[InstanceBase], request: Request[MultipartFormData[Files.TemporaryFile]]): FactoryParameters = {
     val parameters = factory.parameters()
     val paramIndexes = Array.range(0, parameters.size()).map(_.toString)
     val paramValues = paramIndexes.map(request.body.dataParts.get(_).head.head)

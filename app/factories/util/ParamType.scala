@@ -5,5 +5,5 @@ package factories.util
  */
 object ParamType extends Enumeration {
   type ParamType = Value
-  val Boolean, Int, Float, String, DataSource, TopicModel, CFModel = Value
+  val Boolean, Int, Float, String, DataSource, TopicModel, CFModel, CFModelList = Value
 }

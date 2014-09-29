@@ -8,6 +8,8 @@ class Param (name: String, description: String, kind: ParamType.ParamType) {
   def getDescription = description
   def getType = kind
 
+  def copy: Param = new Param(name, description, kind)
+
   def setValue (value :String) {
     if (kind == ParamType.Boolean) {
       setBoolValue(value != "0")
@@ -15,6 +17,8 @@ class Param (name: String, description: String, kind: ParamType.ParamType) {
       setIntValue(Integer.valueOf(value))
     } else if (kind == ParamType.Float) {
       setDoubleValue(java.lang.Double.valueOf(value))
+    } else if (kind == ParamType.CFModelList) {
+      setIntArrayValue(value.split(" ").map(_.toInt))
     } else {
       setStringValue(stringVal)
     }
@@ -29,17 +33,22 @@ class Param (name: String, description: String, kind: ParamType.ParamType) {
   def setIntValue(value: Int): Unit = {
     intVal = value
   }
-  def setBoolValue(value: Boolean): Unit = {
+  def setBoolValue(value: Boolean) = {
     boolVal = value
+  }
+  def setIntArrayValue(value: Array[Int]) {
+    intArrayVal = value
   }
 
   def getStringValue = stringVal
   def getDoubleValue = doubleVal
   def getIntValue = intVal
   def getBoolValue = boolVal
+  def getIntArrayValue = intArrayVal
 
   protected var stringVal = ""
   protected var doubleVal = 0.0
   protected var intVal = 0
   protected var boolVal = false
+  protected var intArrayVal = new Array[Int](1)
 }

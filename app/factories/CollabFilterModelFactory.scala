@@ -1,10 +1,8 @@
 package factories
 
-import factories.util.{FactoryParameters, FactoryBase, CollabDashParameters}
+import factories.util.FactoryBase
 
 /**
  * Created by robert on 25/09/2014.
  */
-trait CollabFilterModelFactory extends FactoryBase {
-  def buildCollabFilterModel(fp: FactoryParameters, cdp: CollabDashParameters): CollabFilterModel
-}
+trait CollabFilterModelFactory extends FactoryBase[CollabFilterModel]

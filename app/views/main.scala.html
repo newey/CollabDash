@@ -12,16 +12,16 @@
     <body>
         <ul>
         @for((dsf, index) <- factories.dataSourceFactories.zipWithIndex) {
-            <li><a href="dataSourceFactory/@index">@dsf.name()</a>, @dsf.description()</li>
+            <li><a href="dataSourceFactory/@index">@dsf.name</a>, @dsf.description</li>
         }
         @for((tmf, index) <- factories.topicModelFactories.zipWithIndex) {
-            <li><a href="topicModelFactory/@index">@tmf.name()</a>, @tmf.description()</li>
+            <li><a href="topicModelFactory/@index">@tmf.name</a>, @tmf.description</li>
         }
         @for((cfmf, index) <- factories.collabFilterModelFactories.zipWithIndex) {
-            <li><a href="collabFilterModelFactory/@index">@cfmf.name()</a>, @cfmf.description()</li>
+            <li><a href="collabFilterModelFactory/@index">@cfmf.name</a>, @cfmf.description</li>
         }
         @for((ef, index) <- factories.evaluationFactories.zipWithIndex) {
-            <li><a href="evaluationFactory/@index">@ef.name()</a>, @ef.description()</li>
+            <li><a href="evaluationFactory/@index">@ef.name</a>, @ef.description</li>
         }
         </ul>
     </body>

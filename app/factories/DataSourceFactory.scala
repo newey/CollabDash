@@ -1,10 +1,8 @@
 package factories
 
-import factories.util.{FactoryParameters, FactoryBase, CollabDashParameters}
+import factories.util.FactoryBase
 
 /**
  * Created by robert on 22/09/2014.
  */
-trait DataSourceFactory extends FactoryBase{
-  def buildDataSource(fp: FactoryParameters, cdp: CollabDashParameters): DataSource
-}
+trait DataSourceFactory extends FactoryBase[DataSource]

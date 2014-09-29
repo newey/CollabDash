@@ -5,5 +5,5 @@ package evaluation.util
  */
 object ScoreType extends Enumeration {
   type ScoreType = Value
-  val MAE, RMS, MeanAbsGuess = Value
+  val MAE, RMS, MeanAbsGuess, GuessMean, GuessVariance = Value
 }

@@ -5,5 +5,5 @@ package databases
  */
 object InstanceType extends Enumeration {
   type InstanceType = Value
-  val dataSource, topicModel, cfModel = Value
+  val dataSource, topicModel, cfModel, evaluation = Value
 }
