@@ -6,11 +6,12 @@ import java.sql.{Timestamp, Connection, Statement}
 import databases.InstanceType.InstanceType
 import evaluation.util.ScoreType
 import evaluation.util.ScoreType.ScoreType
-import evaluation.util.ScoreType.ScoreType
 import factories.util.InstanceBase
 import factories._
+import org.codehaus.jackson.JsonNode
 import play.api.Play.current
 import play.api.db._
+import play.api.libs.json._
 
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable
@@ -223,6 +224,48 @@ object CollabDB {
     results.toList
   }
 
+  def getWideResultsForDisplay(): List[WideResultsDisplay] = {
+    val query =
+      "SELECT scoresview.evalid, scoresview.rmse, scoresview.mae, scoresview.mean, scoresview.variance, " +
+        "scoresview.buildtime, scoresview.lost, scoresview.modelid, scoresview.evalgroupid, " +
+        "evaluationgroups.trainsetsize, evaluationgroups.testsetsize, evaluationgroups.dataid, " +
+        "datasourcesview.description dataDescription, " +
+        "cfmodelview.description modelDescription, " +
+        "evaluationview.description evaluationDescription " +
+        "FROM scoresview " +
+        "INNER JOIN evaluationgroups ON scoresview.evalgroupid=evaluationgroups.evalgroupid " +
+        "INNER JOIN datasourcesview ON evaluationgroups.dataid=datasourcesview.instanceid " +
+        "INNER JOIN cfmodelview ON scoresview.modelid=cfmodelview.instanceid " +
+        "INNER JOIN evaluationview ON scoresview.evalgroupid=evaluationview.instanceid"
+    val results = ListBuffer[WideResultsDisplay]()
+    val conn = DB.getConnection()
+    try {
+      val rs = conn.prepareStatement(query).executeQuery()
+      while (rs.next) {
+        results += WideResultsDisplay(
+          rs.getInt(1),
+          rs.getDouble(2),
+          rs.getDouble(3),
+          rs.getDouble(4),
+          rs.getDouble(5),
+          rs.getLong(6),
+          rs.getInt(7),
+          rs.getInt(8),
+          rs.getInt(9),
+          rs.getInt(10),
+          rs.getInt(11),
+          rs.getInt(12),
+          rs.getString(13),
+          rs.getString(14),
+          rs.getString(15)
+        )
+      }
+    } finally {
+      conn.close()
+    }
+    results.toList
+  }
+
   def purge(): Unit = {
     val conn = DB.getConnection()
     try {
@@ -236,21 +279,47 @@ object CollabDB {
 
 case class InstanceInfo (index: Int, description: String)
 
+
+case class WideResultsDisplay
+  (evalid: Int, rmse: Double, mae: Double, mean: Double, variance: Double, buildTime: Long,
+   failSize: Int, modelId: Int, evalgroupid: Int, trainSize: Int, testSize: Int, dataId: Int,
+   dataDesc: String, modelDesc: String, evalDesc: String) {
+  def toMap: Map[String, JsValue] = {
+    Map(
+      "EvalId" -> Json.toJson(evalid),
+      "RMSE" -> Json.toJson(rmse.formatted("%.10f")),
+      "MAE" -> Json.toJson(mae.formatted("%.10f")),
+      "Mean" -> Json.toJson(mean.formatted("%.10f")),
+      "Variance" -> Json.toJson(variance.formatted("%.10f")),
+      "BuildTime" -> Json.toJson(buildTime),
+      "FailedAmount" -> Json.toJson(failSize),
+      "ModelId" -> Json.toJson(modelId),
+      "EvalGroupId" -> Json.toJson(evalgroupid),
+      "TrainSize" -> Json.toJson(trainSize),
+      "TestSize" -> Json.toJson(testSize),
+      "DataId" -> Json.toJson(dataId),
+      "Data" -> Json.toJson(dataDesc),
+      "Model" -> Json.toJson(modelDesc),
+      "Evaluation" -> Json.toJson(evalDesc)
+    )
+  }
+}
+
 case class ResultsDisplay (resultsScore: Double, scoreType: ScoreType, buildTime: Long,
                             failSize: Int, trainSize: Int, testSize: Int, dataDesc: String,
                             modelDesc: String, evalDesc: String, tstamp: Long) {
-  def toMap: Map[String, String] = {
+  def toMap: Map[String, JsValue] = {
     Map(
-      "Score" -> resultsScore.toString,
-      "ScoreType" -> scoreType.toString,
-      "BuildTime" -> buildTime.toString,
-      "FailedAmount" -> failSize.toString,
-      "TrainSize" -> trainSize.toString,
-      "TestSize" -> testSize.toString,
-      "Data" -> dataDesc,
-      "Model" -> modelDesc,
-      "Evaluation" -> evalDesc,
-      "Timestamp" -> tstamp.toString
+      "Score" -> Json.toJson(resultsScore.formatted("%.10f")),
+      "ScoreType" -> Json.toJson(scoreType.toString),
+      "BuildTime" -> Json.toJson(buildTime),
+      "FailedAmount" -> Json.toJson(failSize),
+      "TrainSize" -> Json.toJson(trainSize),
+      "TestSize" -> Json.toJson(testSize),
+      "Data" -> Json.toJson(dataDesc),
+      "Model" -> Json.toJson(modelDesc),
+      "Evaluation" -> Json.toJson(evalDesc),
+      "Timestamp" -> Json.toJson(tstamp)
     )
   }
 }

@@ -10,17 +10,19 @@
     dom: 'C<"clear">lfrtip',
     "paging" : false,
     "info" : false,
-    "ajax" : "data/results.json",
-    "columns" :[ { "data" : "ScoreType" },
-    { "data" : "Score" },
+    "ajax" : "data/wideresults.json",
+    "columns" :[ { "data" : "EvalId" },
+    { "data" : "RMSE" },
+    { "data" : "MAE" },
+    { "data" : "Mean" },
+    { "data" : "Variance" },
     { "data" : "Data" },
     { "data" : "Model" },
     { "data" : "Evaluation" },
     { "data" : "FailedAmount"},
     { "data" : "TrainSize"},
     { "data" : "TestSize"},
-    { "data" : "BuildTime"},
-    { "data" : "Timestamp"}
+    { "data" : "BuildTime"}
     ]
     } ) ;
 
@@ -31,11 +33,14 @@
     } ) ;
     </script>
 }{
-    <table id="results" class="display">
+    <table id="results" class="display" width=100%>
         <thead>
             <tr>
-                <th>Score Type</th>
-                <th>Score</th>
+                <th>Eval Id</th>
+                <th>RMSE</th>
+                <th>MAE</th>
+                <th>Mean</th>
+                <th>Variance</th>
                 <th>Data</th>
                 <th>Model</th>
                 <th>Evaluation</th>
@@ -43,7 +48,6 @@
                 <th>Train Size</th>
                 <th>Test Size</th>
                 <th>Build Time</th>
-                <th>Timestamp</th>
             </tr>
         </thead>
     </table>

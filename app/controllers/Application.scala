@@ -182,12 +182,23 @@ object Application extends Controller {
 
   def getResults() = Action{ request =>
     val jsonified = Json.toJson(
-      Map("data" -> CollabDB.getResultsForDisplay().map(x => x.toMap.mapValues(Json.toJson(_)))))
+      Map("data" -> CollabDB.getResultsForDisplay().map(x => x.toMap)))
+    Ok(jsonified).as("application/json")
+  }
+
+  def getWideResults() = Action{ request =>
+    val jsonified = Json.toJson(
+      Map("data" -> CollabDB.getWideResultsForDisplay().map(x => x.toMap)))
     Ok(jsonified).as("application/json")
   }
 
   def resultsList() = Action {
     val cont = views.html.results("CollabDash")(FactoryRegister)
+    Ok(cont)
+  }
+
+  def wideResultsList() = Action {
+    val cont = views.html.wideResults("CollabDash")(FactoryRegister)
     Ok(cont)
   }
 }

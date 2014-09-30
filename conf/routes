@@ -24,7 +24,11 @@ GET         /fetchCollabFilterModel/:id          controllers.Application.fetchCo
 
 GET         /data/results.json                   controllers.Application.getResults
 
+GET         /data/wideresults.json               controllers.Application.getWideResults
+
 GET         /results                             controllers.Application.resultsList
+
+GET         /wideresults                             controllers.Application.wideResultsList
 
 POST        /dataSourceFactory/:id               controllers.Application.buildDataSource(id: Int)
 
