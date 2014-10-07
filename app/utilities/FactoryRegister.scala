@@ -9,11 +9,12 @@ import datasources.nofilter.NoFilterFactory
 import evaluation.TrainTestEvaluator
 import factories.{EvaluationFactory, CollabFilterModelFactory, TopicModelFactory, DataSourceFactory}
 import topicmodels.empty.EmptyTopicModelFactory
+import topicmodels.mahoutLDA.MahoutLDAFactory
 
 
 object FactoryRegister {
   val dataSourceFactories = List[DataSourceFactory](NoFilterFactory)
-  val topicModelFactories = List[TopicModelFactory](EmptyTopicModelFactory)
+  val topicModelFactories = List[TopicModelFactory](EmptyTopicModelFactory, MahoutLDAFactory)
   val collabFilterModelFactories = List[CollabFilterModelFactory](ItemAverageFactory, GuessZeroFactory, ItemSimilarityFactory, UserSimilarityFactory, ALSFactory)
   val evaluationFactories = List[EvaluationFactory](TrainTestEvaluator)
 }

@@ -56,9 +56,9 @@ object Application extends Controller {
       case ds => CollabDB.addInstance(ds)
     }
 
-    datasource onFailure( {
+    datasource onFailure {
       case th => throw th
-    })
+    }
 
     Redirect(routes.Application.buildDataSource(index))
   }
@@ -78,9 +78,9 @@ object Application extends Controller {
       case tm => CollabDB.addInstance(tm)
     }
 
-    topicModel onFailure( {
+    topicModel onFailure {
       case th => throw th
-    })
+    }
 
 
     Redirect(routes.Application.buildTopicModel(index))
@@ -103,9 +103,9 @@ object Application extends Controller {
       collabFilter onSuccess {
         case cf => CollabDB.addInstance(cf)
       }
-      collabFilter onFailure( {
+      collabFilter onFailure {
         case th => throw th
-      })
+      }
     }
 
     parameters.foreach (building(_))
@@ -133,8 +133,6 @@ object Application extends Controller {
     }
     Redirect(routes.Application.buildEvaluation(index))
   }
-
-
 
   private def bindRequestToParams(factory: FactoryBase[InstanceBase], request: Request[MultipartFormData[Files.TemporaryFile]]): FactoryParameters = {
     val parameters = factory.parameters()

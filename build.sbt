@@ -10,5 +10,6 @@ libraryDependencies += "postgresql" % "postgresql" % "9.1-901-1.jdbc4"
 
 libraryDependencies += "org.apache.mahout" % "mahout-core" % "0.9"
 
+libraryDependencies += "org.apache.hadoop" % "hadoop-core" % "1.2.1"
 
 playScalaSettings
