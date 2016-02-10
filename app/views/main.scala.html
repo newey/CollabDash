@@ -1,0 +1,31 @@
+@(title: String)(factories: utilities.FactoryRegister.type)
+
+@base(title){
+
+} {
+    <h1>Data Sources</h1>
+    <ul>
+    @for((dsf, index) <- factories.dataSourceFactories.zipWithIndex) {
+        <li><a href="dataSourceFactory/@index">@dsf.name</a>, @dsf.description</li>
+    }
+    </ul>
+    <h1>Topic Models</h1>
+    <ul>
+    @for((tmf, index) <- factories.topicModelFactories.zipWithIndex) {
+        <li><a href="topicModelFactory/@index">@tmf.name</a>, @tmf.description</li>
+    }
+    </ul>
+    <h1>CF Models</h1>
+    <ul>
+    @for((cfmf, index) <- factories.collabFilterModelFactories.zipWithIndex) {
+        <li><a href="collabFilterModelFactory/@index">@cfmf.name</a>, @cfmf.description</li>
+    }
+    </ul>
+
+    <h1>Evaluations</h1>
+    <ul>
+    @for((ef, index) <- factories.evaluationFactories.zipWithIndex) {
+        <li><a href="evaluationFactory/@index">@ef.name</a>, @ef.description</li>
+    }
+    </ul>
+}

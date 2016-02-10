@@ -1,0 +1,50 @@
+@(title: String)(factories: utilities.FactoryRegister.type)
+
+@base(title) {
+    <script type="text/javascript" charset="utf8" src="@routes.Assets.at("javascripts/dataTables.colVis.js")"></script>
+    <link href="@routes.Assets.at("stylesheets/dataTables.colVis.css")" rel="stylesheet">
+    <script type="text/javascript" charset="utf-8">
+    $ ( document ).ready (
+    function ( ) {
+    var table = $ ( '#results' ).DataTable ( {
+    dom: 'C<"clear">lfrtip',
+    "paging" : false,
+    "info" : false,
+    "ajax" : "data/results.json",
+    "columns" :[ { "data" : "ScoreType" },
+    { "data" : "Score" },
+    { "data" : "Data" },
+    { "data" : "Model" },
+    { "data" : "Evaluation" },
+    { "data" : "FailedAmount"},
+    { "data" : "TrainSize"},
+    { "data" : "TestSize"},
+    { "data" : "BuildTime"},
+    { "data" : "Timestamp"}
+    ]
+    } ) ;
+
+    setInterval ( function ( ) {
+    table.ajax.reload ( ) ;
+    }, 5000 ) ;
+
+    } ) ;
+    </script>
+}{
+    <table id="results" class="display">
+        <thead>
+            <tr>
+                <th>Score Type</th>
+                <th>Score</th>
+                <th>Data</th>
+                <th>Model</th>
+                <th>Evaluation</th>
+                <th>Failed Amount</th>
+                <th>Train Size</th>
+                <th>Test Size</th>
+                <th>Build Time</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+    </table>
+}

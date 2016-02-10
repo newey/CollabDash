@@ -1,0 +1,21 @@
+@(title: String, factory: factories.util.FactoryBase[factories.util.InstanceBase], id: Int, submission: Int => Call)
+
+
+@base(title){
+    <!-- -->
+}{
+
+<ul>
+@helper.form(action = submission(id), 'enctype -> "multipart/form-data") {
+    @for(pnum <- Array.range(0, factory.parameters().size())) {
+        <p>
+            @factory.parameters().getParam(pnum).getName (@factory.parameters().getParam(pnum).getDescription)
+            <input type="text" name="@pnum">
+        </p>
+    }
+    <p>
+        <input type="submit">
+    </p>
+}
+</ul>
+}

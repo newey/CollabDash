@@ -1,0 +1,41 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET         /                                    controllers.Application.index
+
+# Map static resources from the /public folder to the /assets URL path
+GET         /assets/*file                        controllers.Assets.at(path="/public", file)
+
+GET         /dataSourceFactory/:id               controllers.Application.createDataSourceFromFactory(id: Int)
+
+GET         /topicModelFactory/:id               controllers.Application.createTopicModelFromFactory(id: Int)
+
+GET         /collabFilterModelFactory/:id        controllers.Application.createCollabFilterModelFromFactory(id: Int)
+
+GET         /evaluationFactory/:id               controllers.Application.createEvaluationFromFactory(id: Int)
+
+GET         /fetchDataSource/:id                 controllers.Application.fetchDataSource(id: Int)
+
+GET         /fetchTopicModel/:id                 controllers.Application.fetchTopicModel(id: Int)
+
+GET         /fetchCollabFilterModel/:id          controllers.Application.fetchCollabFilterModel(id: Int)
+
+GET         /data/results.json                   controllers.Application.getResults
+
+GET         /data/wideresults.json               controllers.Application.getWideResults
+
+GET         /results                             controllers.Application.resultsList
+
+GET         /wideresults                             controllers.Application.wideResultsList
+
+POST        /dataSourceFactory/:id               controllers.Application.buildDataSource(id: Int)
+
+POST        /topicModelFactory/:id               controllers.Application.buildTopicModel(id: Int)
+
+POST        /collabFilterModelFactory/:id        controllers.Application.buildCollabFilterModel(id: Int)
+
+POST        /evaluationFactory/:id               controllers.Application.buildEvaluation(id: Int)
+
+POST        /purge                               controllers.Application.purge()

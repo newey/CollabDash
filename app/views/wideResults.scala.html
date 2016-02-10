@@ -1,0 +1,54 @@
+@(title: String)(factories: utilities.FactoryRegister.type)
+
+@base(title) {
+    <script type="text/javascript" charset="utf8" src="@routes.Assets.at("javascripts/dataTables.colVis.js")"></script>
+    <link href="@routes.Assets.at("stylesheets/dataTables.colVis.css")" rel="stylesheet">
+    <script type="text/javascript" charset="utf-8">
+    $ ( document ).ready (
+    function ( ) {
+    var table = $ ( '#results' ).DataTable ( {
+    dom: 'C<"clear">lfrtip',
+    "paging" : false,
+    "info" : false,
+    "ajax" : "data/wideresults.json",
+    "columns" :[ { "data" : "EvalId" },
+    { "data" : "RMSE" },
+    { "data" : "MAE" },
+    { "data" : "Mean" },
+    { "data" : "Variance" },
+    { "data" : "Data" },
+    { "data" : "Model" },
+    { "data" : "Evaluation" },
+    { "data" : "FailedAmount"},
+    { "data" : "TrainSize"},
+    { "data" : "TestSize"},
+    { "data" : "BuildTime"}
+    ]
+    } ) ;
+
+    setInterval ( function ( ) {
+    table.ajax.reload ( ) ;
+    }, 5000 ) ;
+
+    } ) ;
+    </script>
+}{
+    <table id="results" class="display" width=100%>
+        <thead>
+            <tr>
+                <th>Eval Id</th>
+                <th>RMSE</th>
+                <th>MAE</th>
+                <th>Mean</th>
+                <th>Variance</th>
+                <th>Data</th>
+                <th>Model</th>
+                <th>Evaluation</th>
+                <th>Failed Amount</th>
+                <th>Train Size</th>
+                <th>Test Size</th>
+                <th>Build Time</th>
+            </tr>
+        </thead>
+    </table>
+}
